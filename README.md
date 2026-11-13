@@ -117,6 +117,25 @@ an independent OCFL validator).
   [specification](https://opensheaf.org) and the
   [FAQ](https://github.com/opensheaf/opensheaf/blob/main/FAQ.md).
 
+## A testing ground
+
+`examples/run.sh` builds a throwaway archive from the
+[example papers](https://github.com/opensheaf/example-papers) (invented
+papers, TeXmacs papers and slides from tm-forge, fake arXiv downloads) and
+runs every workflow of the tools, also the unusual ones: versions deposited
+out of order, a notice with an erratum, a version after a notice, the sources
+of a PDF-only version found later, a new licence, an arXiv import, a
+withdrawal. Clone the example papers next to your repository and run
+
+```
+examples/run.sh
+```
+
+to see what each command does (the archive goes to a temporary folder; this
+repository is not changed). The workflow `examples` runs it on every push and
+every week, and keeps the archive it built as an artifact. Delete `examples/`
+when you start your own archive if you like.
+
 ## Licence
 
 This template (the pages, style and workflow) is dedicated to the public
