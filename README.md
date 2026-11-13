@@ -21,7 +21,13 @@ pipx install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-p
 
 ## 2. Set it up
 
-In your clone:
+In your clone, edit [archive.yaml](archive.yaml) and run
+
+```
+osheaf init . --from archive.yaml
+```
+
+or give the settings on the command line:
 
 ```
 osheaf init . \
@@ -44,6 +50,21 @@ collection, the discovery document `opensheaf.json` and the website.
 
 ## 3. Deposit a paper
 
+Describe the paper in a YAML file, as in
+[deposits/example.yaml](deposits/example.yaml), and run
+
+```
+osheaf deposit --from deposits/kpz-uniqueness.yaml
+osheaf collect
+osheaf index
+osheaf verify
+git add -A && git commit -m "Deposit kpz-uniqueness" && git push
+```
+
+Files and options are read as text, relative to the YAML file; a list of
+entries deposits several papers or versions in order. The same can be done on
+the command line:
+
 ```
 osheaf deposit kpz-uniqueness paper.tex --pdf paper.pdf \
   --extra-source refs.bib --extra-source figures/fig1.pdf=figures/fig1.pdf \
@@ -51,10 +72,6 @@ osheaf deposit kpz-uniqueness paper.tex --pdf paper.pdf \
   --author "Doe, Jane|Example University" --author "Roe, Richard|Another University" \
   --abstract-file abstract.txt --rights cc-by-4.0 \
   --related "IsIdenticalTo:arxiv:1508.07764"
-osheaf collect
-osheaf index
-osheaf verify
-git add -A && git commit -m "Deposit kpz-uniqueness" && git push
 ```
 
 - The identifier (`kpz-uniqueness`) is permanent and appears in the URL of
