@@ -121,7 +121,7 @@ an independent OCFL validator).
   licences; see the README of opensheaf-py).
 - Collections of other people's papers, mirrors and signatures: see the
   [specification](https://opensheaf.org) and the
-  [FAQ](https://github.com/opensheaf/opensheaf/blob/main/FAQ.md).
+  [FAQ](https://github.com/opensheaf/opensheaf.github.io/blob/main/FAQ.md).
 
 ## A testing ground
 
