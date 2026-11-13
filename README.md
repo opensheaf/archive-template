@@ -1,5 +1,12 @@
 # An OpenSheaf archive
 
+> [!WARNING]
+> **Draft.** OpenSheaf 0.1 is a draft specification. Until version 1.0, any
+> revision may change the format in incompatible ways (one already did:
+> `provenance.json` became `object.json`). Archives and collections made now
+> may have to be rebuilt or migrated, and the tools follow the latest draft.
+> Do not rely on it yet for anything you cannot redo.
+
 A template for keeping your own archive of papers: every version with its
 sources and PDF, fixed by digests, standard metadata, a website with a page
 per paper (read by Google Scholar), and optionally DOIs from Zenodo. The
