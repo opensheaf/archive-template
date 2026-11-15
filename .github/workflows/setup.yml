@@ -87,9 +87,10 @@ jobs:
           done
       - name: GitHub Pages
         run: |
+          # the push above starts a build if Pages is on; turning it on usually
+          # needs the owner (Settings), which the workflow's token is not
           if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1 \
              || gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f "source[branch]=main" -f "source[path]=/" >/dev/null 2>&1; then
-            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null 2>&1 || true
             pages="GitHub Pages is on: the site will be at $BASE_URL within a few minutes."
           else
             pages="Turn GitHub Pages on: Settings, Pages, Deploy from a branch, branch main, folder / (root). The site will then be at $BASE_URL."
