@@ -27,9 +27,11 @@ Both give the same archive, and can be mixed.
 2. In your new repository: **Actions**, **Set up the archive**, **Run
    workflow**, and fill in the form (the name of the archive, your name;
    the rest can stay empty). It sets the archive up and turns GitHub Pages
-   on; if it cannot, the run's page says how to turn it on yourself
+   on; if it cannot (usually), the run's page says how to turn it on yourself
    (**Settings**, **Pages**, **Deploy from a branch**, branch `main`, folder
-   `/ (root)`). The site is at `https://USER.github.io/papers/`.
+   `/ (root)`). The site is at `https://USER.github.io/papers/`; if your
+   GitHub Pages use a domain of your own, give the address on that domain in
+   the form's last field.
 3. To deposit a paper: **Issues**, **New issue**, **New deposit**. Fill in the
    form and drag in the PDF and the sources (best as one zip: GitHub does not
    accept every kind of file, such as `.tex`, as an attachment), then submit.
