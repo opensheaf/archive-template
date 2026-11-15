@@ -70,6 +70,19 @@ attached to an issue is public at once. If something is wrong, the workflow
 says so in the issue and changes nothing: edit the issue, then close and
 reopen it to try again. Each issue stays as the record of what was done.
 
+## From another page: the OpenSheaf Manager
+
+The [OpenSheaf Manager](https://opensheaf.org/manager/) does the same from
+a page, with forms, the files picked from your computer, and the archive's
+papers and collections listed. Sign in with GitHub there (installing the
+OpenSheaf app on this repository), or give a fine-grained personal access
+token limited to this repository (*Contents: read and write*). Each
+operation is sent as a request, `requests/ID/request.json` with the files
+attached; the workflow `from request` carries it out with `osheaf`, as it
+does the issue forms, and writes its answer to `requests/results/ID.json`.
+A repository made from the template before the manager existed needs the
+template's `.github/` folder brought up to date.
+
 ## 1. Make your copy
 
 Press **Use this template** on GitHub (for instance a repository called
