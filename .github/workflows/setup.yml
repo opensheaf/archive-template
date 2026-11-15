@@ -1,0 +1,103 @@
+# Set the archive up from the browser (Actions tab, "Set up the archive",
+# "Run workflow"): runs osheaf init with the answers of the form, commits,
+# creates the labels of the issue forms, and asks GitHub Pages to publish
+# the site. Run once; afterwards, deposit with the issue form "New deposit".
+name: Set up the archive
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: The name of the archive, e.g. "Papers of Jane Doe"
+        required: true
+      curator:
+        description: Your name, as "Family, Given"
+        required: true
+      affiliation:
+        description: Your affiliation (optional)
+        required: false
+      contact:
+        description: A web page or mailto:address where you can be reached (optional)
+        required: false
+      archive_id:
+        description: The archive's permanent identifier, a tag URI (empty for tag:OWNER.github.io,YEAR:REPOSITORY)
+        required: false
+      base_url:
+        description: Where the site will be served (empty for https://OWNER.github.io/REPOSITORY/)
+        required: false
+permissions:
+  contents: write
+  issues: write
+  pages: write
+concurrency:
+  group: archive
+  cancel-in-progress: false
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NAME: ${{ inputs.name }}
+      CURATOR: ${{ inputs.curator }}
+      AFFILIATION: ${{ inputs.affiliation }}
+      CONTACT: ${{ inputs.contact }}
+      ARCHIVE_ID: ${{ inputs.archive_id }}
+      BASE_URL: ${{ inputs.base_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
+      - name: osheaf init
+        run: |
+          if [ -f osheaf.json ]; then
+            echo "This archive is already set up (osheaf.json exists): nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          owner=$(echo "${GITHUB_REPOSITORY%%/*}" | tr '[:upper:]' '[:lower:]')
+          repo="${GITHUB_REPOSITORY#*/}"
+          if [ -z "$BASE_URL" ]; then
+            if [ "$(echo "$repo" | tr '[:upper:]' '[:lower:]')" = "$owner.github.io" ]; then
+              BASE_URL="https://$owner.github.io/"
+            else
+              BASE_URL="https://$owner.github.io/$repo/"
+            fi
+          fi
+          case "$BASE_URL" in */) ;; *) BASE_URL="$BASE_URL/" ;; esac
+          if [ -z "$ARCHIVE_ID" ]; then
+            ARCHIVE_ID="tag:$owner.github.io,$(date -u +%Y):$(echo "$repo" | tr '[:upper:]' '[:lower:]')"
+          fi
+          args=(init . --archive-id "$ARCHIVE_ID" --name "$NAME" --base-url "$BASE_URL" --curator "$CURATOR")
+          [ -n "$AFFILIATION" ] && args+=(--affiliation "$AFFILIATION")
+          [ -n "$CONTACT" ] && args+=(--contact "$CONTACT")
+          osheaf "${args[@]}"
+          osheaf verify
+          echo "BASE_URL=$BASE_URL" >> "$GITHUB_ENV"
+          echo "ARCHIVE_ID=$ARCHIVE_ID" >> "$GITHUB_ENV"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Set up the archive: $NAME"
+          git push
+      - name: Labels of the issue forms
+        run: |
+          for l in "osheaf: deposit" "osheaf: notice" "osheaf: withdraw" "osheaf: licence"; do
+            gh label create "$l" -R "$GITHUB_REPOSITORY" --color 5e6a78 --force >/dev/null || true
+          done
+      - name: GitHub Pages
+        run: |
+          if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1 \
+             || gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f "source[branch]=main" -f "source[path]=/" >/dev/null 2>&1; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null 2>&1 || true
+            pages="GitHub Pages is on: the site will be at $BASE_URL within a few minutes."
+          else
+            pages="Turn GitHub Pages on: Settings, Pages, Deploy from a branch, branch main, folder / (root). The site will then be at $BASE_URL."
+          fi
+          {
+            echo "## The archive is set up"
+            echo
+            echo "- Identifier: \`$ARCHIVE_ID\` (it names the archive forever)."
+            echo "- $pages"
+            echo "- To deposit a paper: Issues, New issue, **New deposit**."
+          } >> "$GITHUB_STEP_SUMMARY"
