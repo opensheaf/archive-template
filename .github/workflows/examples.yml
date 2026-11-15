@@ -1,5 +1,7 @@
-# The testing ground: build a throwaway archive from the example papers and
-# run every workflow of the tools (examples/run.sh), on every push and weekly.
+# The testing ground: build throwaway archives from the example papers and
+# run every workflow of the tools, on every push and weekly: an author's
+# archive (examples/run.sh), collections (examples/collections.sh) and
+# journals (examples/journals.sh).
 name: examples
 on:
   push:
@@ -19,3 +21,9 @@ jobs:
       - run: examples/run.sh example-papers "$RUNNER_TEMP/archive"
       - uses: actions/upload-artifact@v4
         with: {name: example-archive, path: "${{ runner.temp }}/archive"}
+      - run: examples/collections.sh example-papers "$RUNNER_TEMP/collections"
+      - run: examples/journals.sh example-papers "$RUNNER_TEMP/journals"
+      - uses: actions/upload-artifact@v4
+        with: {name: example-collections, path: "${{ runner.temp }}/collections"}
+      - uses: actions/upload-artifact@v4
+        with: {name: example-journals, path: "${{ runner.temp }}/journals"}

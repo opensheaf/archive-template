@@ -21,4 +21,6 @@ body:
   - type: input
     attributes:
       label: How the authors agreed
-      description: For instance "confirmed by e-mail".
+      description: For instance "confirmed by e-mail", or "I am the only author". Recorded with the new licence.
+    validations:
+      required: true
