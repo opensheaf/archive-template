@@ -22,7 +22,7 @@ on:
         description: The archive's permanent identifier, a tag URI (empty for tag:OWNER.github.io,YEAR:REPOSITORY)
         required: false
       base_url:
-        description: Where the site will be served (empty for https://OWNER.github.io/REPOSITORY/)
+        description: Where the site will be served (empty for https://OWNER.github.io/REPOSITORY/; if your GitHub Pages use your own domain, give it, e.g. https://example.org/REPOSITORY/)
         required: false
 permissions:
   contents: write
