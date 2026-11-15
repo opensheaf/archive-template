@@ -257,8 +257,14 @@ def deposit(form, number, work):
     for keyword in re.split(r"[,;\n]", field(form, "Keywords")):
         if keyword.strip():
             args += ["--keyword", keyword.strip()]
-    if rights := licence(form, "Licence"):
+    rights = licence(form, "Licence")
+    if rights:
         args += ["--rights", rights]
+    elif not (Path("ocfl") / ident / "inventory.json").exists():
+        raise Problem("Choose a **Licence** for a new paper (\"Keep as before\" is for new "
+                      "versions). \"All rights reserved\" lets readers read the paper but not "
+                      "copy it; CC BY 4.0 lets anyone copy it with credit. Check what your "
+                      "publisher allows for papers published in journals.")
     for related in lines(field(form, "Related identifiers")):
         args += ["--related", related]
     if changes := field(form, "What changed (for a new version)"):
@@ -269,7 +275,7 @@ def deposit(form, number, work):
         args += ["--issued", issued]
     args += ["--message", f"Deposit from issue #{number}"]
     osheaf(*args)
-    return ident, f"Deposit {ident} (issue #{number})", "deposited"
+    return ident, f"Deposit {ident} (issue #{number})", "deposited", f"Deposit: {ident}"
 
 
 def notice(form, number, work):
@@ -284,7 +290,8 @@ def notice(form, number, work):
         args += ["--file", files[0]]
     args += ["--message", f"Notice from issue #{number}"]
     osheaf(*args)
-    return ident, f"Notice about {ident}, version {about} (issue #{number})", "given a notice"
+    return (ident, f"Notice about {ident}, version {about} (issue #{number})", "given a notice",
+            f"Notice: {ident}, version {about}")
 
 
 def withdraw(form, number, work):
@@ -292,7 +299,8 @@ def withdraw(form, number, work):
     args = ["withdraw", ident, "--reason", field(form, "Reason for the withdrawal", True),
             "--message", f"Withdrawal from issue #{number}"]
     osheaf(*args)
-    return ident, f"Withdraw {ident} (issue #{number})", "withdrawn (its files stay in the archive)"
+    return (ident, f"Withdraw {ident} (issue #{number})", "withdrawn (its files stay in the archive)",
+            f"Withdrawal: {ident}")
 
 
 def relicense(form, number, work):
@@ -305,7 +313,8 @@ def relicense(form, number, work):
         args += ["--method", method]
     args += ["--message", f"New licence from issue #{number}"]
     osheaf(*args)
-    return ident, f"Relicense {ident} as {rights} (issue #{number})", f"relicensed as {rights}"
+    return (ident, f"Relicense {ident} as {rights} (issue #{number})", f"relicensed as {rights}",
+            f"Licence: {ident}, {rights}")
 
 
 OPERATIONS = {"deposit": deposit, "notice": notice, "withdraw": withdraw,
@@ -327,7 +336,7 @@ def main():
             raise Problem("The archive is not set up yet: run the workflow **Set up the archive** "
                           "first (Actions tab), then open the issue again.")
         with tempfile.TemporaryDirectory() as tmp:
-            ident, commit, done = OPERATIONS[kind](form, issue["number"], Path(tmp))
+            ident, commit, done, title = OPERATIONS[kind](form, issue["number"], Path(tmp))
         osheaf("collect")
         osheaf("index")
         osheaf("verify")
@@ -344,6 +353,7 @@ def main():
         f"Its page will be at <{page}> once GitHub Pages has published the site "
         "(usually within a few minutes).\n", encoding="utf-8")
     commit_file.write_text(commit + "\n", encoding="utf-8")
+    Path(os.environ.get("TITLE_FILE", "title.txt")).write_text(title + "\n", encoding="utf-8")
     return 0
 
 

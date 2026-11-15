@@ -45,7 +45,7 @@ jobs:
         run: |
           set +e
           RESULT_FILE="$RUNNER_TEMP/result.md" COMMIT_FILE="$RUNNER_TEMP/commit.txt" \
-            python3 .github/scripts/osheaf_issue.py
+            TITLE_FILE="$RUNNER_TEMP/title.txt" python3 .github/scripts/osheaf_issue.py
           echo "status=$?" >> "$GITHUB_OUTPUT"
       - name: Commit and publish
         if: steps.op.outputs.status == '0'
@@ -62,6 +62,8 @@ jobs:
             gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/result.md"
           fi
           if [ "${{ steps.op.outputs.status }}" = "0" ] && [ "${{ job.status }}" = "success" ]; then
+            # the issue's title becomes the record of what was done
+            [ -s "$RUNNER_TEMP/title.txt" ] && gh issue edit "$ISSUE" -R "$GITHUB_REPOSITORY" --title "$(cat "$RUNNER_TEMP/title.txt")" >/dev/null || true
             gh issue close "$ISSUE" -R "$GITHUB_REPOSITORY"
           fi
       - name: Report a failure of the workflow itself

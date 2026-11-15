@@ -38,14 +38,15 @@ body:
   - type: dropdown
     attributes:
       label: Licence
-      description: Check what your publisher allows for papers published in journals. "Keep as before" keeps the licence of the previous version (for a new paper, all rights reserved).
+      description: 'Check what your publisher allows for papers published in journals. "All rights reserved": readers may read the paper, not copy it; CC BY 4.0: anyone may copy it, with credit. "Keep as before" is for a new version.'
       options:
-        - Keep as before
         - CC BY 4.0 (cc-by-4.0)
         - CC BY-SA 4.0 (cc-by-sa-4.0)
         - CC0 1.0 (cc0-1.0)
         - All rights reserved
-      default: 0
+        - Keep as before (for a new version)
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: PDF of this version
