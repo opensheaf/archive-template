@@ -16,6 +16,35 @@ metadata), and is kept with [opensheaf-py](https://github.com/opensheaf/openshea
 (the `osheaf` command). The first archive made this way is
 [mgubi.org/papers](https://mgubi.org/papers/).
 
+There are two ways to keep it: from the browser, without git or any
+installation (next section), or with the `osheaf` command (sections 1 to 4).
+Both give the same archive, and can be mixed.
+
+## From the browser
+
+1. Press **Use this template** on GitHub, for instance as a repository called
+   `papers`.
+2. In your new repository: **Actions**, **Set up the archive**, **Run
+   workflow**, and fill in the form (the name of the archive, your name;
+   the rest can stay empty). It sets the archive up and turns GitHub Pages
+   on; if it cannot, the run's page says how to turn it on yourself
+   (**Settings**, **Pages**, **Deploy from a branch**, branch `main`, folder
+   `/ (root)`). The site is at `https://USER.github.io/papers/`.
+3. To deposit a paper: **Issues**, **New issue**, **New deposit**. Fill in the
+   form and drag in the PDF and the sources (best as one zip: GitHub does not
+   accept every kind of file, such as `.tex`, as an attachment), then submit.
+   The workflow `from issue` deposits the paper, publishes the site and
+   answers in the issue with the link to the paper's page. A new version: the
+   same form, with the same identifier.
+4. Notices, withdrawals and new licences have forms of their own (**Notice**,
+   **Withdrawal**, **New licence**).
+
+Only the owner of the repository and its collaborators can change the
+archive this way; issues opened by others are answered and closed. What is
+attached to an issue is public at once. If something is wrong, the workflow
+says so in the issue and changes nothing: edit the issue, then close and
+reopen it to try again. Each issue stays as the record of what was done.
+
 ## 1. Make your copy
 
 Press **Use this template** on GitHub (for instance a repository called
