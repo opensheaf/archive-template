@@ -165,6 +165,18 @@ osheaf deposit kpz-uniqueness paper.tex --pdf paper.pdf \
 - Dates: `--available DATE` when the version became public (default today),
   `--issued DATE` when the paper first appeared anywhere.
 
+A paper on arXiv can be deposited with all its versions, byte for byte,
+only by one of its authors or with the authors' permission (arXiv's licence
+lets arXiv distribute it, not others), which is recorded with each version:
+
+```
+osheaf arxiv fetch downloads 2303.18112
+echo '{"2303.18112": "kpz-uniqueness"}' > downloads/identifiers.json
+osheaf arxiv import downloads --agreement "deposited by an author" --agreed-by "Doe, Jane"
+```
+
+From the browser, the issue form **From arXiv** and the manager do the same.
+
 Nothing deposited is ever changed: corrections are new versions, and a
 licence or a link is changed by a description-only version
 (`osheaf relicense`, `osheaf relate`). `osheaf --help` lists everything.
