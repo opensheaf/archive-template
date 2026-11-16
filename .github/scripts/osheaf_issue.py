@@ -434,6 +434,13 @@ def deposit(form, origin):
         args = ["deposit", ident] + ([main] if main is not None else []) + ["--pdf", pdfs[0]]
         if main is None:
             args += ["--no-source", missing]
+        if licence_file := field(form, "Licence file"):
+            if main is None:
+                raise Problem("A **Licence file** must be one of the sources; there are none.")
+            if licence_file not in [main.name] + [logical for _, logical in others]:
+                raise Problem(f"The licence file `{licence_file}` is not among the sources: give its path "
+                              "inside the zip (for instance `LICENSE`).")
+            args += ["--licence-file", licence_file]
         for path, logical in others:
             args += ["--extra-source", f"{path}={logical}"]
         title, authors = field(form, "Title"), lines(field(form, "Authors"))
