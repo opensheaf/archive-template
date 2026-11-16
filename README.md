@@ -79,7 +79,8 @@ OpenSheaf app on this repository), or give a fine-grained personal access
 token limited to this repository (*Contents: read and write*). Each
 operation is sent as a request, `requests/ID/request.json` with the files
 attached; the workflow `from request` carries it out with `osheaf`, as it
-does the issue forms, and writes its answer to `requests/results/ID.json`.
+does the issue forms, and writes its answer to `requests/results/ID.json`
+(the last 100 answers are kept; older ones stay in the history).
 A repository made from the template before the manager existed needs the
 template's `.github/` folder brought up to date.
 
