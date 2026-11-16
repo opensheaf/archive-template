@@ -12,6 +12,9 @@ on:
   push:
     branches: [main]
     paths: ["requests/*/request.json"]
+  # also by hand (Actions tab), for requests left waiting, for instance sent
+  # before this workflow was added to the repository
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:
