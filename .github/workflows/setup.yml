@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.13"}
-      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py@spec-0.1-tools"
       - name: osheaf init
         run: |
           if [ -f osheaf.json ]; then

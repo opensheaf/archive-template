@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py@spec-0.1-tools"
       - name: osheaf verify
         run: |
           if [ -f osheaf.json ]; then osheaf verify; else echo "not set up yet: run osheaf init (see README)"; fi
