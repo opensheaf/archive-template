@@ -1,9 +1,18 @@
-# Set the archive up from the browser (Actions tab, "Set up the archive",
-# "Run workflow"): runs osheaf init with the answers of the form and, for a
+# Set up the archive from the browser (Actions tab, "Set up the archive",
+# "Run workflow"), once the key ceremony of the README is done: the owner of
+# the archive made on your computer (its rotation keys never leave it), its
+# key log added to the repository as key-log/, and a current key for the
+# workflows in the repository secret OPENSHEAF_SIGNING_KEY. Rotation keys are
+# never made here: a workflow can only sign with the key it is given.
+#
+# Runs osheaf init with that owner and the answers of the form (through
+# .github/scripts/osheaf_issue.py, as the manager's setup does) and, for a
 # repository meant for a collection (a reading list, a journal issue),
 # creates that collection and features it on the home page; commits,
 # creates the labels of the issue forms, and says how to publish the site.
-# Run once; afterwards, use the issue forms (Issues, New issue).
+# If the archive was set up on your computer already (osheaf init, pushed),
+# it only checks the secret and does the rest. Run once; afterwards, use the
+# issue forms (Issues, New issue).
 name: Set up the archive
 on:
   workflow_dispatch:
@@ -28,8 +37,8 @@ on:
       contact:
         description: A web page or mailto:address where you can be reached (optional)
         required: false
-      archive_id:
-        description: The archive's permanent identifier, a tag URI (empty for tag:OWNER.github.io,YEAR:REPOSITORY)
+      owner:
+        description: The owner name printed by the key ceremony (optional; checked against key-log/)
         required: false
       base_url:
         description: Where the site will be served (empty for https://OWNER.github.io/REPOSITORY/; if your GitHub Pages use your own domain, give it, e.g. https://example.org/REPOSITORY/)
@@ -46,77 +55,70 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      OPENSHEAF_SIGNING_KEY: ${{ secrets.OPENSHEAF_SIGNING_KEY }}
       NAME: ${{ inputs.name }}
       PURPOSE: ${{ inputs.purpose }}
       DESCRIPTION: ${{ inputs.description }}
       CURATOR: ${{ inputs.curator }}
       AFFILIATION: ${{ inputs.affiliation }}
       CONTACT: ${{ inputs.contact }}
-      ARCHIVE_ID: ${{ inputs.archive_id }}
+      OWNER: ${{ inputs.owner }}
       BASE_URL: ${{ inputs.base_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.13"}
-      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
-      - name: osheaf init
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py@spec-0.2"
+      - name: The key for the workflows
         run: |
-          if [ -f osheaf.json ]; then
-            echo "This archive is already set up (osheaf.json exists): nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ -z "$OPENSHEAF_SIGNING_KEY" ]; then
+            {
+              echo "## The key for the workflows is missing"
+              echo
+              echo "The repository secret OPENSHEAF_SIGNING_KEY is not set. The workflows sign for the archive's owner"
+              echo "with a current key of their own, made on your computer by the key ceremony of the README"
+              echo "(osheaf key new, osheaf owner rotate --add), and stored as that secret"
+              echo "(Settings, Secrets and variables, Actions, New repository secret). Nothing was done."
+            } | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          owner=$(echo "${GITHUB_REPOSITORY%%/*}" | tr '[:upper:]' '[:lower:]')
-          repo="${GITHUB_REPOSITORY#*/}"
-          if [ -z "$BASE_URL" ]; then
-            if [ "$(echo "$repo" | tr '[:upper:]' '[:lower:]')" = "$owner.github.io" ]; then
-              BASE_URL="https://$owner.github.io/"
-            else
-              BASE_URL="https://$owner.github.io/$repo/"
+      - name: osheaf init, with the owner of the key ceremony
+        run: |
+          if [ -f osheaf.json ]; then
+            echo "The archive is set up already (osheaf.json): only the secret is checked." | tee -a "$GITHUB_STEP_SUMMARY"
+            osheaf owner show | tee "$RUNNER_TEMP/owner.txt"
+            if ! grep -q '^on this device' "$RUNNER_TEMP/owner.txt"; then
+              echo "The secret OPENSHEAF_SIGNING_KEY does not hold a current key of the archive's owner (osheaf owner show)." | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
             fi
-          fi
-          case "$BASE_URL" in */) ;; *) BASE_URL="$BASE_URL/" ;; esac
-          if [ -z "$ARCHIVE_ID" ]; then
-            ARCHIVE_ID="tag:$owner.github.io,$(date -u +%Y):$(echo "$repo" | tr '[:upper:]' '[:lower:]')"
-          fi
-          args=(init . --archive-id "$ARCHIVE_ID" --name "$NAME" --base-url "$BASE_URL" --curator "$CURATOR")
-          [ -n "$AFFILIATION" ] && args+=(--affiliation "$AFFILIATION")
-          [ -n "$CONTACT" ] && args+=(--contact "$CONTACT")
-          osheaf "${args[@]}"
-          if [ "$PURPOSE" != papers ]; then
-            # the collection the repository is for, featured on the home page
-            id=$(python3 - <<'PY'
-          import json, os, re, yaml
-          from pathlib import Path
-          name = os.environ["NAME"]
-          ident = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:32].strip("-") or "collection"
-          data = {"title": name}
-          if os.environ.get("DESCRIPTION"):
-              data["description"] = os.environ["DESCRIPTION"]
-          data.update({"type": os.environ["PURPOSE"], "order": "manual", "members": []})
-          Path("collections").mkdir(exist_ok=True)
-          header = ("# The members of a collection of this archive, in order, for\n"
-                    "# `osheaf collection sync ID --from collections/ID.yaml`: kept by the issue\n"
-                    "# forms of this repository (Issues, New issue) or by hand (see the README).\n")
-          Path(f"collections/{ident}.yaml").write_text(header + yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
-          s = json.loads(Path("osheaf.json").read_text(encoding="utf-8"))
-          s.setdefault("index", {}).setdefault("html", {"templates": "templates"})["featured"] = ident
-          Path("osheaf.json").write_text(json.dumps(s, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-          Path(os.environ["GITHUB_ENV"]).open("a").write(f"COLLECTION={ident}\n")
-          print(ident)
+            echo "SET_UP_ALREADY=1" >> "$GITHUB_ENV"
+          else
+            mkdir -p "$RUNNER_TEMP/setup"
+            python3 - "$RUNNER_TEMP/setup/request.json" <<'PY'
+          import json, os, sys
+          fields = {"Name": os.environ["NAME"], "Purpose": os.environ["PURPOSE"], "Description": os.environ["DESCRIPTION"],
+                    "Curator": os.environ["CURATOR"], "Affiliation": os.environ["AFFILIATION"],
+                    "Contact": os.environ["CONTACT"], "Owner": os.environ["OWNER"], "Base URL": os.environ["BASE_URL"]}
+          json.dump({"operation": "setup", "fields": {k: v for k, v in fields.items() if v.strip()}, "files": {}},
+                    open(sys.argv[1], "w"), indent=2)
           PY
-          )
-            osheaf collection sync "$id" --from "collections/$id.yaml" --message "The collection is set up"
-            osheaf index
+            set +e
+            RESULT_FILE="$RUNNER_TEMP/result.md" COMMIT_FILE="$RUNNER_TEMP/commit.txt" \
+              TITLE_FILE="$RUNNER_TEMP/title.txt" python3 .github/scripts/osheaf_issue.py --request "$RUNNER_TEMP/setup/request.json"
+            status=$?
+            set -e
+            cat "$RUNNER_TEMP/result.md" | tee -a "$GITHUB_STEP_SUMMARY"
+            [ $status -eq 0 ] || exit 1
           fi
-          osheaf verify
-          echo "BASE_URL=$BASE_URL" >> "$GITHUB_ENV"
-          echo "ARCHIVE_ID=$ARCHIVE_ID" >> "$GITHUB_ENV"
+          python3 -c 'import json; s = json.load(open("osheaf.json")); print("BASE_URL=" + s["baseUrl"]); print("OWNER=" + s["owner"]); print("COLLECTION=" + s.get("index", {}).get("html", {}).get("featured", ""))' >> "$GITHUB_ENV"
       - name: Commit
+        if: env.SET_UP_ALREADY != '1'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -q -m "Set up the archive: $NAME"
+          git commit -q -F "$RUNNER_TEMP/commit.txt"
+          python3 .github/scripts/commit_check.py HEAD~1 HEAD
           git push
       - name: Labels of the issue forms
         run: |
@@ -133,10 +135,11 @@ jobs:
           else
             pages="Turn GitHub Pages on: Settings, Pages, Deploy from a branch, branch main, folder / (root). The site will then be at $BASE_URL."
           fi
+          explorer="https://opensheaf.org/explorer/?url=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$BASE_URL")"
           {
             echo "## The archive is set up"
             echo
-            echo "- Identifier: \`$ARCHIVE_ID\` (it names the archive forever)."
+            echo "- Owner: \`$OWNER\` (its page: ${BASE_URL}owner/$OWNER/; in the Explorer: $explorer#/owner/$OWNER)."
             echo "- $pages"
             if [ -n "$COLLECTION" ]; then
               echo "- The collection $COLLECTION is created and featured on the home page: add papers with Issues, New issue, **Add a member** (In collection: $COLLECTION)."
