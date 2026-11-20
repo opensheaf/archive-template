@@ -21,6 +21,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  pages: read      # the setup reads where GitHub Pages serve the site (its base URL)
 concurrency:
   group: archive
   cancel-in-progress: false
@@ -39,6 +40,7 @@ jobs:
       - name: Carry out the requests, oldest first
         env:
           OPENSHEAF_SIGNING_KEY: ${{ secrets.OPENSHEAF_SIGNING_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           start=$(git rev-parse HEAD)
           echo "START=$start" >> "$GITHUB_ENV"

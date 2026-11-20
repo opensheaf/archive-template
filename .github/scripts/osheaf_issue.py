@@ -42,6 +42,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -904,6 +905,65 @@ def key_log_folder(form, work):
         f"`{SIGNING_KEY}` must hold the current key made for the workflows.")
 
 
+def github_api(path):
+    """A GET of GitHub's API with the workflow's token (GITHUB_TOKEN or
+    GH_TOKEN), as JSON, or None if it fails (absent, not allowed)."""
+    request = urllib.request.Request(f"https://api.github.com/{path}", headers={
+        "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as r:
+            return json.loads(r.read())
+    except Exception:
+        return None
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def redirected_host(url):
+    """The host that URL redirects to (a GitHub Pages site with a custom
+    domain), or ''."""
+    try:
+        urllib.request.build_opener(NoRedirect).open(urllib.request.Request(url, method="HEAD"), timeout=30)
+    except urllib.error.HTTPError as e:
+        if e.code in (301, 302, 307, 308):
+            return urllib.parse.urlsplit(e.headers.get("Location", "")).hostname or ""
+    except Exception:
+        pass
+    return ""
+
+
+def site_url(url):
+    """An address of a site as a base URL: https, ending with /."""
+    url = re.sub(r"^http://", "https://", url.strip())
+    return url if url.endswith("/") else url + "/"
+
+
+def default_base_url(repo):
+    """Where GitHub Pages serve the repository's site, and the rule that
+    said so: (a) the repository's own Pages site, if on; (b) the custom
+    domain of the owner's Pages (the repository OWNER.github.io: its cname,
+    or where https://OWNER.github.io/ redirects), whose project sites are at
+    https://DOMAIN/REPOSITORY/; (c) https://OWNER.github.io/REPOSITORY/."""
+    owner, name = repo.split("/", 1)
+    user = owner.lower()
+    own = github_api(f"repos/{repo}/pages") or {}
+    if own.get("html_url"):
+        return site_url(own["html_url"]), "the address of the repository's GitHub Pages site"
+    path = "" if name.lower() == f"{user}.github.io" else f"{name}/"
+    domain = (github_api(f"repos/{owner}/{owner}.github.io/pages") or {}).get("cname") \
+        or redirected_host(f"https://{user}.github.io/")
+    if domain and not domain.lower().endswith(".github.io"):
+        return (f"https://{domain.lower()}/{path}",
+                f"the domain of the owner's GitHub Pages ({owner}.github.io is served at {domain.lower()})")
+    return f"https://{user}.github.io/{path}", "the GitHub Pages address of the owner (no domain of its own found)"
+
+
 def setup(form, origin):
     """Set the archive up (osheaf init with an existing owner, whose key log
     was made by the key ceremony), for the workflow "Set up the archive" and
@@ -911,10 +971,10 @@ def setup(form, origin):
     if Path("osheaf.json").exists():
         raise Problem("The archive is already set up.")
     repo = os.environ.get("GITHUB_REPOSITORY", "owner/archive")
-    user, name_ = repo.split("/", 1)[0].lower(), repo.split("/", 1)[1]
-    base = field(form, "Base URL") or (f"https://{user}.github.io/" if name_.lower() == f"{user}.github.io"
-                                       else f"https://{user}.github.io/{name_}/")
-    base = base if base.endswith("/") else base + "/"
+    if base := field(form, "Base URL"):
+        base, rule = site_url(base), "as given"
+    else:
+        base, rule = default_base_url(repo)
     title = field(form, "Name", required=True)
     with tempfile.TemporaryDirectory() as tmp:
         folder = key_log_folder(form, Path(tmp))
@@ -949,6 +1009,8 @@ def setup(form, origin):
                 "on its home page")
     else:
         done = f"the archive was set up, owned by `{owner}`"
+    done += (f". Its base URL is {base} ({rule}); if that is not where its site is served, change "
+             "`baseUrl` in `osheaf.json` and run `osheaf index`")
     return ("", f"Set up the archive: {title} ({origin})", f"Setup: {title}", done)
 
 
@@ -994,6 +1056,11 @@ def check_signing_key():
 
 def main():
     result_file = Path(os.environ.get("RESULT_FILE", "result.md"))
+    if len(sys.argv) == 2 and sys.argv[1] == "--base-url":
+        # for the workflow "Set up the archive": the base URL and its rule
+        base, rule = default_base_url(os.environ.get("GITHUB_REPOSITORY", "owner/archive"))
+        print(f"BASE_URL={base}\nBASE_RULE={rule}")
+        return 0
     if len(sys.argv) == 3 and sys.argv[1] == "--request":
         kind, form, origin = read_request(sys.argv[2])
         if kind not in OPERATIONS:

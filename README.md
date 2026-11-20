@@ -163,14 +163,20 @@ copies its key log from another archive (`owner:` and `key-log:` in
    follows its members whatever their authors add), and your name; the rest
    can stay empty. For a selection or a catalogue, it creates that
    collection and features it on the home page. It sets the archive up with
-   the owner of `key-log/`, and turns GitHub Pages on; if it cannot
-   (usually), the run's page says how to turn it on yourself (**Settings**,
-   **Pages**, **Deploy from a branch**, branch `main`, folder `/ (root)`).
-   The site is at `https://USER.github.io/papers/`; if your GitHub Pages use
-   a domain of your own, give the address on that domain in the form's last
-   field. (An archive set up on your computer, step 5 of the ceremony, needs
-   this only for the labels of the issue forms and Pages: the workflow then
-   checks the secret and does the rest.)
+   the owner of `key-log/`. It cannot turn GitHub Pages on (the workflow's
+   token may not): turn it on yourself, before or after the run, in
+   **Settings**, **Pages**, **Build and deployment**, Source **Deploy from a
+   branch**, branch `main`, folder `/ (root)`, **Save**; the first line of
+   the run's page says so. The form's last field, the base URL, is where the
+   site is served; left empty, it is the address of the repository's Pages
+   site if Pages is on already, otherwise, if your `USER.github.io` site has
+   a domain of its own (such as `example.org`), `https://example.org/papers/`,
+   otherwise `https://USER.github.io/papers/`. The run's page says which rule
+   it used; if the address is wrong, change `baseUrl` in `osheaf.json` and
+   run `osheaf index` (the contact, if not given, is the base URL too). (An
+   archive set up on your computer, step 5 of the ceremony, needs this only
+   for the labels of the issue forms and Pages: the workflow then checks the
+   secret and does the rest.)
 4. To deposit a paper: **Issues**, **New issue**, **New deposit**. Choose
    **A new paper**, give it a label (permanent, the address of its page), fill
    in the form and drag in the PDF and the sources (best as one zip: GitHub
@@ -249,7 +255,9 @@ osheaf init . --name "Papers of Jane Doe" --base-url https://janedoe.github.io/p
 ```
 
 - `--base-url` is where the site is served: with GitHub Pages,
-  `https://USER.github.io/REPOSITORY/`, or your own domain. An archive is
+  `https://USER.github.io/REPOSITORY/`, or, if your `USER.github.io` site
+  has a domain of its own, `https://DOMAIN/REPOSITORY/` (the repository's
+  **Settings**, **Pages** shows the address once Pages is on). An archive is
   named by no identifier of its own: its lines are named by their sheaf
   URIs, and the archive by where it is served.
 - `--new-owner` makes the owner; `--owner OWNER --key-log DIR` uses an
