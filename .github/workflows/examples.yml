@@ -14,6 +14,8 @@ on:
   workflow_dispatch:
 jobs:
   examples:
+    # The template's own test: archives made from the template skip it.
+    if: github.repository == 'opensheaf/archive-template'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

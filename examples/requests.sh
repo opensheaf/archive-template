@@ -33,7 +33,7 @@ new_archive "$SETUP" "Owner setup" https://example.org/owner-setup/
 OWNER=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["owner"])' "$SETUP/osheaf.json")
 CI=$WORK/ci-key
 mkdir -p "$CI"
-CI_DID=$(XDG_CONFIG_HOME=$CI osheaf --root "$SETUP" key new | head -1)
+CI_DID=$(XDG_CONFIG_HOME=$CI osheaf --root "$SETUP" key new | grep -o 'did:key:z[1-9A-HJ-NP-Za-km-z]*' | head -1)
 set -- "$WORK"/keys/owner-setup/rotation-*.txt
 osheaf --root "$SETUP" owner rotate --add "$CI_DID" --rotation-key "$1" --rotation-key "$2" \
   --export "$WORK/keys/owner-setup-2" --no-passphrase --yes
