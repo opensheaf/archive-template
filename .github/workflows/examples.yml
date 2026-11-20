@@ -1,7 +1,10 @@
 # The testing ground: build throwaway archives from the example papers and
 # run every workflow of the tools, on every push and weekly: an author's
 # archive (examples/run.sh), collections (examples/collections.sh) and
-# journals (examples/journals.sh).
+# journals (examples/journals.sh). Their owners are throwaway ones, with keys
+# made in a temporary folder (examples/common.sh); this workflow uses no
+# secret. In the template's own repository it also checks that templates/
+# is byte for byte the templates of opensheaf-py.
 name: examples
 on:
   push:
@@ -17,13 +20,25 @@ jobs:
         with: {repository: opensheaf/example-papers, path: example-papers}
       - uses: actions/setup-python@v5
         with: {python-version: "3.13"}
-      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py@spec-0.2"
+      - name: The templates are those of opensheaf-py
+        if: github.repository == 'opensheaf/archive-template'
+        run: .github/scripts/check-templates.sh
       - run: examples/run.sh example-papers "$RUNNER_TEMP/archive"
       - uses: actions/upload-artifact@v4
         with: {name: example-archive, path: "${{ runner.temp }}/archive"}
       - run: examples/collections.sh example-papers "$RUNNER_TEMP/collections"
       - run: examples/journals.sh example-papers "$RUNNER_TEMP/journals"
+      # the archives only: the throwaway keys (work/) are left out
       - uses: actions/upload-artifact@v4
-        with: {name: example-collections, path: "${{ runner.temp }}/collections"}
+        with:
+          name: example-collections
+          path: |
+            ${{ runner.temp }}/collections
+            !${{ runner.temp }}/collections/work
       - uses: actions/upload-artifact@v4
-        with: {name: example-journals, path: "${{ runner.temp }}/journals"}
+        with:
+          name: example-journals
+          path: |
+            ${{ runner.temp }}/journals
+            !${{ runner.temp }}/journals/work

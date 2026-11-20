@@ -8,17 +8,19 @@
 # Defaults: ../example-papers next to this repository, and a temporary folder.
 # Nothing in this repository is changed. The GitHub workflow `examples` runs it
 # on every push; delete examples/ when you start your own archive if you like.
+# The archive's owner is a throwaway one, with keys in a temporary folder
+# (see common.sh); a real owner is made as the README says.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")/.." && pwd)
-EX=$(cd "${1:-$HERE/../example-papers}" && pwd)
 A=${2:-$(mktemp -d)/archive}
+WORK=$(mktemp -d)
+. "$HERE/examples/common.sh"
+EX=$(with_new "$(cd "${1:-$HERE/../example-papers}" && pwd)")
 O="osheaf --root $A"
-step() { printf '\n== %s\n' "$*"; }
 
-step "a new archive, from the template's settings and templates"
+step "a new archive with a new owner, from the template's templates"
 mkdir -p "$A" && cp -R "$HERE/templates" "$A/templates"
-osheaf init "$A" --archive-id tag:example.org,2026:examples --name "Example papers" \
-  --base-url https://example.org/examples/ --curator "Example, Ada" --affiliation "University of Nowhere"
+new_archive "$A" "Example papers" https://example.org/examples/ --affiliation "University of Nowhere"
 
 step "ordinary deposits from YAML: Markdown notes, a PDF without sources, TeXmacs papers and slides"
 for f in heat-notes lost-sources ibp-exponential meyer-cdt-slides audoly-mec430; do
@@ -57,8 +59,9 @@ step "real slides from Zenodo (CC BY), one in two versions sharing 20 of their 2
 $O deposit --from "$EX/deposits/zenodo-wilde-slides.yaml"
 $O deposit --from "$EX/deposits/zenodo-houghton-slides.yaml"
 
-step "the collection, the website, the checks"
+step "the main catalogue, the website, the checks"
 $O collect
 $O index
 $O verify
-printf '\nThe example archive is in %s (open %s/index.html).\n' "$A" "$A"
+$O owner show
+printf '\nThe example archive is in %s (open %s/index.html); the throwaway keys in %s.\n' "$A" "$A" "$WORK"
