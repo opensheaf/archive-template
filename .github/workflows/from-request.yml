@@ -4,7 +4,9 @@
 # and the fields of the corresponding issue form) and the files attached,
 # next to it. Only those who may write to the repository can push them.
 # Each request is carried out by .github/scripts/osheaf_issue.py, as an
-# issue form would be; the result is written to requests/results/ID.json
+# issue form would be, signing the new versions with the owner's key for the
+# workflows (the repository secret OPENSHEAF_SIGNING_KEY, see the README;
+# without it every request is answered with how to set it); the result is written to requests/results/ID.json
 # for the page to read, and the request is removed. Nothing is committed
 # from a request that fails. Only the last 100 answers are kept (they are
 # for the page, and stay in the history); the archive itself records what
@@ -33,9 +35,13 @@ jobs:
         with: {ref: "${{ github.event.repository.default_branch }}"}
       - uses: actions/setup-python@v5
         with: {python-version: "3.13"}
-      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
+      - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py@spec-0.2"
       - name: Carry out the requests, oldest first
+        env:
+          OPENSHEAF_SIGNING_KEY: ${{ secrets.OPENSHEAF_SIGNING_KEY }}
         run: |
+          start=$(git rev-parse HEAD)
+          echo "START=$start" >> "$GITHUB_ENV"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for f in requests/*/request.json; do     # in order of their names, which begin with the date
@@ -79,7 +85,9 @@ jobs:
           done
       - name: Push
         run: |
+          # the checks of the git companion (attributes, append-only), then
           # requests pushed meanwhile start another run; ours goes on top of them
+          python3 .github/scripts/commit_check.py "$START" HEAD
           for _ in 1 2 3; do
             git push -q && exit 0
             git pull -q --rebase
