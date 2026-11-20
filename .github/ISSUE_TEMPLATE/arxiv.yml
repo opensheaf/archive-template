@@ -15,9 +15,9 @@ body:
       required: true
   - type: input
     attributes:
-      label: Identifier
+      label: Label
       placeholder: kpz-uniqueness
-      description: Its identifier in this archive, permanent (at most 32 characters, lower-case letters and digits, words joined by -). For a paper already imported from arXiv, its identifier adds its new versions.
+      description: Its label in this archive, in the address of its page, permanent (at most 32 characters, lower-case letters and digits, words joined by -). For a paper already imported from arXiv, its label adds its new versions.
     validations:
       required: true
   - type: input
@@ -47,7 +47,7 @@ body:
   - type: input
     attributes:
       label: In collection
-      description: Optional. The identifier of a collection of this archive to add the paper to.
+      description: Optional. The label of a collection of this archive to add the paper to.
   - type: input
     attributes:
       label: Position

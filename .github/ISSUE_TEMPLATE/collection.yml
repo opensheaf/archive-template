@@ -5,11 +5,11 @@ labels: ["osheaf: collection"]
 body:
   - type: markdown
     attributes:
-      value: A collection is an object of the archive that lists papers (and other collections) of any OpenSheaf archive, pinned by digest. A **selection** vets particular versions (a reading list, a journal issue); a **catalogue** follows its members whatever their authors add (the papers of a group). Add members with the form **Add a member**, naming the collection in **In collection**. Only the repository's owner and collaborators can create one.
+      value: A collection is a line of the archive, signed by its owner, that lists papers (and other collections) of any OpenSheaf archive, pinned by digest. A **selection** vets particular versions (a reading list, a journal issue); a **catalogue** follows its members whatever their authors add (the papers of a group). Add members with the form **Add a member**, naming the collection in **In collection**. Only the repository's owner and collaborators can create one.
   - type: input
     attributes:
-      label: Identifier of the new collection
-      description: Permanent, part of its address. At most 32 characters, lower-case letters and digits, words joined by `-`.
+      label: Label of the new collection
+      description: Its label in this archive, permanent, part of its address. At most 32 characters, lower-case letters and digits, words joined by `-`.
       placeholder: reading-list
     validations:
       required: true
@@ -41,7 +41,7 @@ body:
   - type: input
     attributes:
       label: In collection
-      description: Optional. To put it inside another collection of this archive (a section of a reading list, an issue of a journal), that collection's identifier.
+      description: Optional. To put it inside another collection of this archive (a section of a reading list, an issue of a journal), that collection's label.
   - type: input
     attributes:
       label: Position

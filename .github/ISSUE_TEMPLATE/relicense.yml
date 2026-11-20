@@ -5,7 +5,8 @@ labels: ["osheaf: licence"]
 body:
   - type: input
     attributes:
-      label: Identifier
+      label: Label
+      description: The paper's label in this archive (as in the address of its page, `.../paper/LABEL/`).
       placeholder: kpz-uniqueness
     validations:
       required: true

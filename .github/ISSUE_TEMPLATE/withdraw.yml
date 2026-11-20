@@ -8,7 +8,8 @@ body:
       value: A withdrawal adds a version saying that the paper is withdrawn, and why; the paper's files stay in the archive, as the specification requires. Removing files for legal reasons (a takedown) is done from the command line. Only the owner of the repository and its collaborators can withdraw.
   - type: input
     attributes:
-      label: Identifier
+      label: Label
+      description: The paper's label in this archive (as in the address of its page, `.../paper/LABEL/`).
       placeholder: kpz-uniqueness
     validations:
       required: true

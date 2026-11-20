@@ -9,7 +9,7 @@ body:
   - type: input
     attributes:
       label: Member
-      description: The member's identifier.
+      description: "The member: its label, if it is a line of this archive or of the archive given below; or its sheaf URI (`sheaf:<name>:<owner>`)."
     validations:
       required: true
   - type: input
@@ -21,13 +21,13 @@ body:
   - type: input
     attributes:
       label: In collection
-      description: The identifier of the collection of this archive (see its collections/ folder).
+      description: The label of the collection of this archive (see its collections/ folder).
     validations:
       required: true
   - type: input
     attributes:
       label: Archive of the member
-      description: Only if two members have the same identifier.
+      description: For a member of another archive given by its label, the address of that archive.
   - type: input
     attributes:
       label: Why (optional)
