@@ -23,7 +23,7 @@ body:
   - type: input
     attributes:
       label: Label
-      description: The paper's label in this archive, in the address of its page (`.../paper/LABEL/`). For a new paper, choose it once and for all, at most 32 characters, lower-case letters and digits, words joined by `-`; for a new version, the label of the paper.
+      description: The paper's label in this archive, in the address of its page (`.../paper/LABEL/`). For a new paper, at most 32 characters, lower-case letters and digits, words joined by `-`; for a new version, the label of the paper. Its permanent name is its sheaf: URI; a label is only an address, best never changed.
       placeholder: kpz-uniqueness
     validations:
       required: true

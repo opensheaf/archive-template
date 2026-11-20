@@ -17,7 +17,7 @@ body:
     attributes:
       label: Label
       placeholder: kpz-uniqueness
-      description: Its label in this archive, in the address of its page, permanent (at most 32 characters, lower-case letters and digits, words joined by -). For a paper already imported from arXiv, its label adds its new versions.
+      description: Its label in this archive, in the address of its page (at most 32 characters, lower-case letters and digits, words joined by -). For a paper already imported from arXiv, its label adds its new versions.
     validations:
       required: true
   - type: input

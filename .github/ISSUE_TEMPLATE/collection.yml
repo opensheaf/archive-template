@@ -9,7 +9,7 @@ body:
   - type: input
     attributes:
       label: Label of the new collection
-      description: Its label in this archive, permanent, part of its address. At most 32 characters, lower-case letters and digits, words joined by `-`.
+      description: Its label in this archive, in the address of its page: at most 32 characters, lower-case letters and digits, words joined by `-`.
       placeholder: reading-list
     validations:
       required: true
