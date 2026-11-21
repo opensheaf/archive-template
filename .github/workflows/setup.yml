@@ -113,7 +113,7 @@ jobs:
           if [ -f osheaf.json ]; then
             echo "The archive is set up already (osheaf.json): only the secret is checked." | tee -a "$GITHUB_STEP_SUMMARY"
             osheaf owner show | tee "$RUNNER_TEMP/owner.txt"
-            if ! grep -q '^on this device' "$RUNNER_TEMP/owner.txt"; then
+            if ! grep -q '(on this computer)$' "$RUNNER_TEMP/owner.txt"; then
               echo "The secret OPENSHEAF_SIGNING_KEY does not hold a current key of the archive's owner (osheaf owner show)." | tee -a "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
