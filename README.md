@@ -31,8 +31,10 @@ anyone can check that the versions are yours, wherever they find a copy.
 
 There are two ways to keep the archive: from the browser, without git
 (next sections), or with the `osheaf` command (sections 1 to 6). Both give
-the same archive, and can be mixed. Either way, the owner is made once, on
-your computer: the key ceremony.
+the same archive, and can be mixed. Either way, the owner is made once:
+on your computer (the key ceremony, below), or in the
+[OpenSheaf Manager](https://manager.opensheaf.org/), which sets the archive
+up with it (see "From another page").
 
 ## The key ceremony: the owner and its keys
 
@@ -222,10 +224,21 @@ token limited to this repository (*Contents: read and write*). Each
 operation is sent as a request, `requests/ID/request.json` with the files
 attached; the workflow `from request` carries it out with `osheaf`, as it
 does the issue forms, and writes its answer to `requests/results/ID.json`
-(the last 100 answers are kept; older ones stay in the history). The
-manager never makes or sees keys: its setup page guides the key ceremony,
-and takes the owner's key log as a zip of the folder `key-log`. A repository
-made from the template before the manager existed needs the template's
+(the last 100 answers are kept; older ones stay in the history); or,
+with the owner's key unlocked by your passkey, it carries the operation out
+in the page and commits it, signed there, as the workflow would.
+
+For a repository not set up yet, the manager makes the owner in the page,
+as `osheaf init --new-owner --key DID` makes it: your current key (kept in
+your key wallet, a private repository, locked with a passphrase and your
+passkey), the workflows' key (stored as the secret
+`OPENSHEAF_SIGNING_KEY` if your sign-in may set secrets, otherwise shown
+once for you to store), and three rotation keys (given to you as files and
+sheets, confirmed before anything is committed, or kept in the wallet).
+It then sets the archive up exactly as **Set up the archive** does, with
+the same files. Or it guides the key ceremony on your computer, and takes
+the owner's key log as a zip of the folder `key-log`. A repository made
+from the template before the manager existed needs the template's
 `.github/` folder brought up to date.
 
 ## 1. Make your copy
