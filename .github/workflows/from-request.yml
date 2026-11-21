@@ -1,5 +1,5 @@
 # Requests made by a page, such as the OpenSheaf manager
-# (https://opensheaf.org/manager/), which writes them to the repository
+# (https://manager.opensheaf.org/), which writes them to the repository
 # with the author's GitHub sign-in: requests/ID/request.json (the operation
 # and the fields of the corresponding issue form) and the files attached,
 # next to it. Only those who may write to the repository can push them.

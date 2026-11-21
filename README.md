@@ -214,7 +214,7 @@ workflows say so, and change nothing.
 
 ## From another page: the OpenSheaf Manager
 
-The [OpenSheaf Manager](https://opensheaf.org/manager/) does the same from
+The [OpenSheaf Manager](https://manager.opensheaf.org/) does the same from
 a page, with forms, the files picked from your computer, and the archive's
 papers and collections listed. Sign in with GitHub there (installing the
 OpenSheaf app on this repository), or give a fine-grained personal access
