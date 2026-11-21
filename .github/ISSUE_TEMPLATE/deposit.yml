@@ -10,7 +10,7 @@ body:
 
         **A new version** of a paper already in the archive: choose "A new version", give the paper's label, attach the new PDF and sources, and say what changed; leave empty what stays the same.
 
-        Every version is signed for the archive's owner by the archive's workflow (with the key of the repository secret `OPENSHEAF_SIGNING_KEY`, see the README).
+        Every version is signed for the archive's default owner by the archive's workflow (with the key of the repository secret `OPENSHEAF_SIGNING_KEY`, see the README).
   - type: dropdown
     attributes:
       label: This deposit
