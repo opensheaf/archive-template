@@ -236,7 +236,9 @@ passkey), the workflows' key (stored as the secret
 once for you to store), and three rotation keys (given to you as files and
 sheets, confirmed before anything is committed, or kept in the wallet).
 It then sets the archive up exactly as **Set up the archive** does, with
-the same files. Or it guides the key ceremony on your computer, and takes
+the same files, recording your key wallet in `osheaf.json` as a hint for
+the owner (`"keys": {"<owner>": {"wallets": ["github:..."]}}`, the field
+"Key wallet" of the setup; `osheaf key wallet --add|--remove` changes it). Or it guides the key ceremony on your computer, and takes
 the owner's key log as a zip of the folder `key-log`. A repository made
 from the template before the manager existed needs the template's
 `.github/` folder brought up to date.

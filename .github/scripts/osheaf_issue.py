@@ -995,6 +995,9 @@ def setup(form, origin):
             if value := field(form, label):
                 args += [option, value]
         osheaf(*args)
+    if wallet := field(form, "Key wallet"):
+        # a hint, in osheaf.json, of the wallet that holds the owner's keys (as the manager records it)
+        osheaf("key", "wallet", "--owner", owner, "--add", wallet)
     if KEY_LOG.is_dir():
         shutil.rmtree(KEY_LOG)   # now in the storage root, at ocfl/<owner>/<owner>/
     purpose = field(form, "Purpose").lower() or "papers"
