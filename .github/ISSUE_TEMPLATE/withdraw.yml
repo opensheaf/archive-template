@@ -5,7 +5,7 @@ labels: ["osheaf: withdraw"]
 body:
   - type: markdown
     attributes:
-      value: A withdrawal adds a version saying that the paper is withdrawn, and why; the paper's files stay in the archive, as the specification requires. Removing files for legal reasons (a takedown) is done from the command line. Only the owner of the repository and its collaborators can withdraw.
+      value: A withdrawal adds a version saying that the paper is withdrawn, and why; the paper's files stay in the archive, as the specification requires. The withdrawal covers the versions deposited so far: a new version of the paper later reinstates it, and those versions stay withdrawn. Removing files for legal reasons (a takedown) is done from the command line. Only the owner of the repository and its collaborators can withdraw.
   - type: input
     attributes:
       label: Label
