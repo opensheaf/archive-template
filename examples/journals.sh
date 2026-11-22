@@ -12,7 +12,9 @@
 #     a selection of these copies, pinning the revisions the editors vetted.
 #     The authors' later versions change nothing at the journal: a correction
 #     is an editorial act (a notice, or the acceptance of a later version,
-#     which moves the copy's branch point and adds the revision to the issue).
+#     which takes a new branch point and adds the revision to the issue).
+#     An accepted copy numbers its own versions from 1 (section 9.4): the copy
+#     of the authors' version 2 is the journal's version 1.
 #     Only the vetted version needs an open licence, so a paper whose first
 #     arXiv version is not openly licensed can be accepted, though not
 #     mirrored; and the journal still verifies when the authors' archive is gone.
@@ -70,7 +72,7 @@ osheaf --root "$A" collect && osheaf --root "$A" index
 osheaf --root "$J" collect && osheaf --root "$J" collection update issue-1
 
 step "the editors correct the papers: a notice, and the acceptance of the author's later version"
-osheaf --root "$J" notice singal-stabiliser-codes --about 2 --text "An invented erratum, issued by the editors."
+osheaf --root "$J" notice singal-stabiliser-codes --about 1 --text "An invented erratum, issued by the editors."
 osheaf --root "$J" accept "$(uri "$A" hirche-network-discrimination 3)" --selection issue-1 \
   --message "Corrected by the editors: the author's version 3 accepted (an invented correction)."
 osheaf --root "$J" collect

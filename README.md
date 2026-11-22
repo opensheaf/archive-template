@@ -566,7 +566,9 @@ unofficial demonstration, not made by or for Quantum):
   a selection of these copies, pinning the revisions the editors vetted.
   The authors' later versions change nothing at the journal: a correction
   is an editorial act (a notice, or the acceptance of a later version,
-  which moves the copy's branch point and adds the revision to the issue).
+  which takes a new branch point and adds the revision to the issue). An
+  accepted copy numbers its own versions from 1, recording the authors'
+  number of the version it holds (section 9.4).
   Only the vetted version needs an open licence, so a paper whose first
   arXiv version is not openly licensed (and could not be mirrored as a
   whole) can be accepted; and the journal still verifies when the authors'
