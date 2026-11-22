@@ -404,6 +404,9 @@ lists, for a selection, the versions not yet vetted; `osheaf collection
 status reading-list` gives each member's status (verified, contested,
 unavailable, ...). To show a collection first on the home page, before the
 archive's own papers, set `"featured": "reading-list"` under `index.html` in
+`osheaf.json`. An archive with several owners lists their papers together
+on the home page, each with its owner; to list them under a heading for
+each owner instead, set `"owners": "by-owner"` under `index` in
 `osheaf.json`.
 
 ## 5. Publish
