@@ -23,8 +23,11 @@ forms deposit documents (a new paper with `--new`, or a new version), give
 notices, withdraw, give new licences, create collections, and add, vet and
 remove their members. A collection that includes a changed collection is
 brought up to date in turn (in a selection, the new version is vetted: the
-same curator made it; a catalogue follows it). Then `osheaf collect`,
-`osheaf index` and `osheaf verify`.
+same curator made it; a catalogue follows it). Then `osheaf collect --owner`
+for the archive's default owner, the owner the workflow acts for (a change
+by one owner touches that owner's catalogue only, and no owner signs for
+another, section 8.1 of the specification), `osheaf index` and `osheaf
+verify`.
 
 Writes a message for the issue to RESULT_FILE (Markdown), the commit message
 to COMMIT_FILE (naming the object versions added, as the git companion asks,
@@ -1101,7 +1104,9 @@ def main():
         cid, message, title, done = OPERATIONS[kind](form, origin)
         if why := field(form, "Why (optional)"):
             message += f": {why}"
-        osheaf("collect")
+        # the catalogue of the acting owner only (section 8.1): another owner's
+        # catalogue, even a stale one, is that owner's to renew, with its keys
+        osheaf("collect", "--owner", settings()["owner"])
         if cid:
             sync(cid, message)
             propagate(cid, message)
