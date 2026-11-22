@@ -570,9 +570,10 @@ unofficial demonstration, not made by or for Quantum):
   accepted copy numbers its own versions from 1, recording the authors'
   number of the version it holds (section 9.4).
   Only the vetted version needs an open licence, so a paper whose first
-  arXiv version is not openly licensed (and could not be mirrored as a
-  whole) can be accepted; and the journal still verifies when the authors'
-  archive is gone;
+  arXiv version is not openly licensed can be accepted (a mirror of the
+  whole line is made only with a warning: the archive keeping it answers
+  for the copy, section 11.2); and the journal still verifies when the
+  authors' archive is gone;
 - a journal that **repackages** the papers: it deposits its versions of record
   (its typeset PDF, its DOI, its licence, the authors' agreement in
   `object.json`) as papers of its own archive, linked to the authors'

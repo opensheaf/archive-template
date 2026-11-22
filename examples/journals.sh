@@ -16,8 +16,10 @@
 #     An accepted copy numbers its own versions from 1 (section 9.4): the copy
 #     of the authors' version 2 is the journal's version 1.
 #     Only the vetted version needs an open licence, so a paper whose first
-#     arXiv version is not openly licensed can be accepted, though not
-#     mirrored; and the journal still verifies when the authors' archive is gone.
+#     arXiv version is not openly licensed can be accepted, while a mirror of
+#     the whole line is made only with a warning (the archive keeping it
+#     answers for the copy, section 11.2); and the journal still verifies
+#     when the authors' archive is gone.
 #  2. A journal that REPACKAGES the papers: it deposits its own version of
 #     record (its typeset PDF, its DOI, its licence, the authors' agreement)
 #     as documents of its own archive, linked to the authors' arXiv versions.
@@ -50,8 +52,12 @@ for p in $PAPERS; do
   osheaf --root "$J" accept "$(uri "$A" "$p" 2)" --selection issue-1 --label "$p"
 done
 
-step "a paper whose v1 is under arXiv's licence: a mirror of the whole line is refused, but its vetted v2 is CC BY and can be accepted"
-if osheaf --root "$J" mirror "$(uri "$A" fictitious-walks)"; then echo "expected a refusal"; exit 1; fi
+step "a paper whose v1 is under arXiv's licence: a mirror of the whole line warns (tried on a copy of the journal), but its vetted v2 is CC BY and can be accepted"
+rm -rf "$W/journal-mirror" && cp -R "$J" "$W/journal-mirror"
+osheaf --root "$W/journal-mirror" mirror "$(uri "$A" fictitious-walks)" 2> "$W/mirror.err"
+cat "$W/mirror.err"
+grep -q "not one known to allow redistribution" "$W/mirror.err" || { echo "expected a warning"; exit 1; }
+rm -rf "$W/journal-mirror"
 osheaf --root "$J" accept "$(uri "$A" fictitious-walks 2)" --selection issue-1 --label fictitious-walks
 osheaf --root "$J" collect
 python3 - "$J/osheaf.json" <<'PY'
