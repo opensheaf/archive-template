@@ -59,7 +59,7 @@ step "real slides from Zenodo (CC BY), one in two versions sharing 20 of their 2
 $O deposit --from "$EX/deposits/zenodo-wilde-slides.yaml"
 $O deposit --from "$EX/deposits/zenodo-houghton-slides.yaml"
 
-step "the main catalogue, the website, the checks"
+step "the owner catalogue, the website, the checks"
 $O collect
 $O index
 $O verify

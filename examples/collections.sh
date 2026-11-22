@@ -61,7 +61,7 @@ osheaf --root "$M" arxiv import "$EX/arxiv-real"
 osheaf --root "$M" collect && osheaf --root "$M" index
 
 step "a catalogue in another archive, featured on its home page: members followed or fixed"
-# (the main catalogue of an archive lists the lines its own owners write,
+# (the owner catalogue of each owner lists the lines that owner writes here,
 # section 8.1 of the specification: collections of others' lines are kept apart)
 mkdir -p "$C" && cp -R "$HERE/templates" "$C/templates"
 new_archive "$C" "A reading list" https://example.org/reading/

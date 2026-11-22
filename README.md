@@ -281,7 +281,7 @@ osheaf init . --name "Papers of Jane Doe" --base-url https://janedoe.github.io/p
 
 This writes `osheaf.json` (the settings, with the owner), the storage root
 `ocfl/` (one folder per owner, `ocfl/<owner>/`, with its key log and its
-lines), the main catalogue, the discovery document `opensheaf.json`, the
+lines), the owner's owner catalogue, the discovery document `opensheaf.json`, the
 indexes (`names/`, `owners/`, `sha512/`) and the website.
 
 ## 3. Deposit a paper
@@ -365,8 +365,9 @@ anyone can check it (section 8 of the specification):
 - a **catalogue** follows its members whatever their authors add: the papers
   of a group, the lines a repository preserves.
 
-The main catalogue of the archive lists the archive's own papers and is kept
-by `osheaf collect`; other collections are kept apart, each with its members
+Each owner the archive hosts has an owner catalogue, which lists its papers
+in the archive and is kept by `osheaf collect` (a new version, signed by
+that owner, only when its papers changed); other collections are kept apart, each with its members
 in `collections/LABEL.yaml`:
 
 ```yaml
