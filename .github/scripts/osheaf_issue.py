@@ -214,9 +214,49 @@ def discovery():
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def page_path_ok(path):
+    """Whether PATH is that of a page of objects below the discovery document (section 3.1)."""
+    return (isinstance(path, str) and bool(path) and not path.startswith("/") and "\\" not in path
+            and all(x not in ("", ".", "..") for x in path.split("/"))
+            and path.endswith(".json") and ":" not in path.split("/")[0])
+
+
+def listed_objects(disc, read):
+    """The entries of objects of the discovery document DISC, from its pages if it pages them
+    (section 3.1, more than a thousand objects), READ(path) giving the bytes of a page or None;
+    ValueError if a page cannot be read. As listed_objects of opensheaf-py."""
+    if "objectPages" not in disc:
+        return [o for o in disc.get("objects") or [] if isinstance(o, dict)]
+    out = []
+    for path in disc.get("objectPages") or []:
+        if not page_path_ok(path):
+            raise ValueError(f"{path!r} is not the path of a page below the discovery document (section 3.1)")
+        data = read(path)
+        if data is None:
+            raise ValueError(f"the page of objects {path} is missing (section 3.1)")
+        try:
+            page = json.loads(data)
+        except ValueError:
+            raise ValueError(f"the page of objects {path} is not JSON") from None
+        if not isinstance(page, dict) or not isinstance(page.get("objects"), list):
+            raise ValueError(f"{path} is not a page of objects (section 3.1)")
+        out += [o for o in page["objects"] if isinstance(o, dict)]
+    return out
+
+
+def local_page(path):
+    f = Path(path)
+    return f.read_bytes() if f.is_file() else None
+
+
 def labels():
     """{label: the entry of the discovery document} of the lines of this archive."""
-    return {o["label"]: o for o in discovery().get("objects", []) if o.get("label")}
+    try:
+        listed = listed_objects(discovery(), local_page)
+    except ValueError as e:
+        raise Problem(f"The discovery document of this archive cannot be read: {e}. Its maintainers "
+                      "restore its pages of objects, and the request is made again.") from None
+    return {o["label"]: o for o in listed if o.get("label")}
 
 
 def catalogues():
@@ -353,6 +393,24 @@ def read_discovery(base):
                       "OpenSheaf archive of specification 0.2, the folder that holds its `opensheaf.json`.")
 
 
+def remote_objects(base):
+    """The entries of objects of the discovery document of the archive at BASE, its pages read."""
+    def read(path):
+        try:
+            with urllib.request.urlopen(base + path, timeout=60) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code in (404, 410):
+                return None
+            raise Problem(f"The archive at `{base}` could not be read ({e}).") from None
+        except Exception as e:
+            raise Problem(f"The archive at `{base}` could not be read ({e}).") from None
+    try:
+        return listed_objects(read_discovery(base), read)
+    except ValueError as e:
+        raise Problem(f"The archive at `{base}` could not be read: {e}.") from None
+
+
 def member_ref(form, name, archive_name, required=True):
     """The member a form names: a sheaf: URI (with or without its `at`), or a
     label, of this archive or of the archive given in ARCHIVE_NAME. Returns
@@ -386,7 +444,7 @@ def member_ref(form, name, archive_name, required=True):
             raise Problem(f"This archive has no line labelled `{text}`; for a line of another "
                           f"archive, give its address in **{archive_name}**.")
         return {"label": text}, (o["name"], o["owner"]), f"`{text}`"
-    o = next((o for o in read_discovery(archive).get("objects", []) if o.get("label") == text), None)
+    o = next((o for o in remote_objects(archive) if o.get("label") == text), None)
     if o is None:
         raise Problem(f"The archive at `{archive}` has no line labelled `{text}`.")
     return ({"uri": f"sheaf:{o['name']}:{o['owner']}", "at": [archive]}, (o["name"], o["owner"]),
