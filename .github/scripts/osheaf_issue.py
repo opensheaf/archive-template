@@ -521,12 +521,18 @@ def sync(label, message):
 
 def propagate(label, message, seen=None):
     """Bring the collections that include a changed collection up to date: a
-    selection vets its new version, a catalogue follows it."""
+    selection vets its new version, a catalogue follows it. Only those of the
+    acting owner: another owner's collection is that owner's to renew, with
+    its keys (no owner signs for another, section 8.1)."""
     seen = set() if seen is None else seen
     for parent in parents(label):
         if parent in seen:
             continue
         seen.add(parent)
+        entry = labels().get(parent)
+        if entry and entry["owner"] != settings()["owner"]:
+            print(f"{parent}: a collection of the owner {entry['owner'][:8]}, left for its owner to renew")
+            continue
         data = load(parent)
         member = next(m for m in data["members"] if isinstance(m, dict) and m.get("label") == label)
         if data.get("type") == "selection":
