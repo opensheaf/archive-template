@@ -59,6 +59,9 @@ LINK = re.compile(r"!?\[([^\]]*)\]\((https?://[^)\s]+)\)")
 LABEL = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # sheaf:<name>:<owner>, with an optional document version and query (section 12.1)
 SHEAF = re.compile(r"^sheaf:([a-z2-7]{52}):([a-z2-7]{51}[aq])(/v\d+)?(?:\?(.*))?$")
+# a name and an owner name (section 5.2), as another archive's discovery document must give them
+NAME = re.compile(r"[a-z2-7]{52}")
+OWNER_NAME = re.compile(r"[a-z2-7]{51}[aq]")
 # arXiv identifiers, new (2303.18112) and old (math/0601001, math.PR/0601001),
 # with an optional version
 ARXIV = re.compile(r"^(?:arxiv:|https?://(?:www\.)?arxiv\.org/(?:abs|pdf)/)?"
@@ -448,6 +451,11 @@ def member_ref(form, name, archive_name, required=True):
     o = next((o for o in remote_objects(archive) if o.get("label") == text), None)
     if o is None:
         raise Problem(f"The archive at `{archive}` has no line labelled `{text}`.")
+    # what another archive says is checked before it is written into a sheaf: URI
+    if not (isinstance(o.get("name"), str) and NAME.fullmatch(o["name"])
+            and isinstance(o.get("owner"), str) and OWNER_NAME.fullmatch(o["owner"])):
+        raise Problem(f"The archive at `{archive}` gives the line labelled `{text}` a name or an "
+                      "owner that is not one (section 5.2): its discovery document is wrong.")
     return ({"uri": f"sheaf:{o['name']}:{o['owner']}", "at": [archive]}, (o["name"], o["owner"]),
             f"`{text}` of {archive}")
 

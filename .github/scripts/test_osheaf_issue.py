@@ -23,6 +23,26 @@ def test_versions_named_twice_are_vetted_once():
     assert "should be document versions" in refused(o.versions, {"V": "five"}, "V")
 
 
+
+def test_names_from_another_archive_are_checked():
+    name, owner = "a" * 52, "b" * 51 + "q"
+    other = "https://other.example/archive/"
+    form = {"Member": "heat", "Archive": other}
+    saved = o.own_base, o.remote_objects
+    try:
+        o.own_base = lambda: "https://example.org/repository/"
+        o.remote_objects = lambda base: [{"label": "heat", "name": name, "owner": owner}]
+        entry, key, _ = o.member_ref(form, "Member", "Archive")
+        assert entry == {"uri": f"sheaf:{name}:{owner}", "at": [other]} and key == (name, owner)
+        for bad in ({"name": "../../x", "owner": owner}, {"name": name, "owner": owner + "\n?at=x"},
+                    {"name": name.upper(), "owner": owner}, {"name": name, "owner": "b" * 52},
+                    {"name": name, "owner": None}, {"name": 5, "owner": owner}):
+            o.remote_objects = lambda base, bad=bad: [dict(bad, label="heat")]
+            assert "is not one (section 5.2)" in refused(o.member_ref, form, "Member", "Archive")
+    finally:
+        o.own_base, o.remote_objects = saved
+
+
 if __name__ == "__main__":
     tests = [f for name, f in sorted(globals().items()) if name.startswith("test_") and callable(f)]
     for t in tests:
