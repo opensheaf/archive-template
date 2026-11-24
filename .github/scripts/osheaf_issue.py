@@ -164,7 +164,8 @@ def versions(form, name, required=False):
     if text and (not found or re.sub(r"[\d,;\s]", "", text)):
         raise Problem(f"**{name}** should be document versions, numbers such as `5` or `5, 6`, "
                       f"not `{text}`.")
-    return [int(n) for n in found]
+    # a version named twice is vetted once
+    return list(dict.fromkeys(int(n) for n in found))
 
 
 def position(form):

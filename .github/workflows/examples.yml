@@ -5,7 +5,8 @@
 # requests (examples/requests.sh). Their owners are throwaway ones, with keys
 # made in a temporary folder (examples/common.sh); this workflow uses no
 # secret. In the template's own repository it also checks that templates/
-# is byte for byte the templates of opensheaf-py.
+# is byte for byte the templates of opensheaf-py, and runs the tests of the
+# functions of the issue forms (.github/scripts/test_osheaf_issue.py).
 name: examples
 on:
   push:
@@ -27,6 +28,8 @@ jobs:
       - name: The templates are those of opensheaf-py
         if: github.repository == 'opensheaf/archive-template'
         run: .github/scripts/check-templates.sh
+      - name: The functions of the issue forms
+        run: python3 .github/scripts/test_osheaf_issue.py
       - run: examples/run.sh example-papers "$RUNNER_TEMP/archive"
       - uses: actions/upload-artifact@v4
         with: {name: example-archive, path: "${{ runner.temp }}/archive"}
