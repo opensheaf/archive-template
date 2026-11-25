@@ -13,16 +13,18 @@ on:
   pull_request:
   schedule: [{cron: "0 6 * * 1"}]
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   examples:
     # The template's own test: archives made from the template skip it.
     if: github.repository == 'opensheaf/archive-template'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with: {repository: opensheaf/example-papers, path: example-papers}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with: {python-version: "3.13"}
       - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
       - name: The templates are those of opensheaf-py
@@ -31,19 +33,19 @@ jobs:
       - name: The functions of the issue forms
         run: python3 .github/scripts/test_osheaf_issue.py
       - run: examples/run.sh example-papers "$RUNNER_TEMP/archive"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with: {name: example-archive, path: "${{ runner.temp }}/archive"}
       - run: examples/collections.sh example-papers "$RUNNER_TEMP/collections"
       - run: examples/journals.sh example-papers "$RUNNER_TEMP/journals"
       - run: examples/requests.sh example-papers "$RUNNER_TEMP/requests"
       # the archives only: the throwaway keys (work/) are left out
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: example-collections
           path: |
             ${{ runner.temp }}/collections
             !${{ runner.temp }}/collections/work
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: example-journals
           path: |
