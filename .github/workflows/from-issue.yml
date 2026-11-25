@@ -1,11 +1,11 @@
 # Deposits, notices, withdrawals, new licences, and collections (created,
 # members added, vetted, removed) from the issue forms in
 # .github/ISSUE_TEMPLATE: for authors who use neither git nor the command
-# line. The workflow checks that the issue's author may write to the
-# repository, runs osheaf (.github/scripts/osheaf_issue.py), which signs the
-# new versions with the owner's key for the workflows (the repository secret
-# OPENSHEAF_SIGNING_KEY, see the README), commits and publishes, and answers
-# in the issue. Close and reopen an issue to try again.
+# line. The workflow checks that the issue's author, and whoever reopened it,
+# may write to the repository, runs osheaf (.github/scripts/osheaf_issue.py),
+# which signs the new versions with the owner's key for the workflows (the
+# repository secret OPENSHEAF_SIGNING_KEY, see the README), commits and
+# publishes, and answers in the issue. Close and reopen an issue to try again.
 name: from issue
 on:
   issues:
@@ -13,11 +13,11 @@ on:
 permissions:
   contents: write
   issues: write
-concurrency:
-  group: archive
-  cancel-in-progress: false
 jobs:
-  operation:
+  # Only the forms, and only from those who may write to the repository,
+  # reach the job that acts: other issues never join the runs that wait for
+  # one another (concurrency), so they cannot cancel one of the owner's.
+  check:
     if: >-
       contains(github.event.issue.body, '### PDF of this version') ||
       contains(github.event.issue.body, '### Text of the notice') ||
@@ -31,21 +31,40 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      GITHUB_TOKEN: ${{ github.token }}
       ISSUE: ${{ github.event.issue.number }}
       AUTHOR: ${{ github.event.issue.user.login }}
+      # who opened or reopened it: reopening an old issue carries its
+      # operation out again, so whoever reopens it must be allowed too
+      ACTOR: ${{ github.event.sender.login }}
     steps:
-      - name: Check that the author may write to the repository
+      - name: Check that the author, and whoever reopened the issue, may write to the repository
         run: |
-          perm=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$AUTHOR/permission" --jq .permission 2>/dev/null || echo none)
-          case "$perm" in
-            admin|maintain|write) echo "author $AUTHOR: $perm" ;;
-            *) gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "Only the owner of this archive and its collaborators can change it, so nothing was done. To suggest a change, write to the archive's owner." || true
-               gh issue close "$ISSUE" -R "$GITHUB_REPOSITORY" || true
-               exit 1 ;;
-          esac
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+          for user in "$AUTHOR" "$ACTOR"; do
+            perm=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$user/permission" --jq .permission 2>/dev/null || echo none)
+            case "$perm" in
+              admin|maintain|write) echo "$user: $perm" ;;
+              *) gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "Only the owner of this archive and its collaborators can change it, or reopen an issue that changes it, so nothing was done. To suggest a change, write to the archive's owner." || true
+                 gh issue close "$ISSUE" -R "$GITHUB_REPOSITORY" || true
+                 exit 1 ;;
+            esac
+          done
+  operation:
+    needs: check
+    runs-on: ubuntu-latest
+    concurrency:
+      group: archive
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+    steps:
+      # the branch as it is now, not the commit current when the issue was
+      # opened: runs wait for one another, and a later one must build on what
+      # an earlier one published, or its push is refused
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: {ref: "${{ github.event.repository.default_branch }}"}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with: {python-version: "3.13"}
       - run: pip install "opensheaf[validate] @ git+https://github.com/opensheaf/opensheaf-py"
       - name: Carry out the operation
@@ -70,12 +89,18 @@ jobs:
           python3 .github/scripts/commit_check.py HEAD~1 HEAD
           git push
       - name: Answer in the issue
-        if: always() && steps.op.outputs.status != ''
+        if: always()
+        env:
+          STATUS: ${{ steps.op.outputs.status }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if [ -f "$RUNNER_TEMP/result.md" ]; then
+          if [ -s "$RUNNER_TEMP/result.md" ]; then
             gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/result.md"
+          elif [ "$STATUS" != "0" ]; then
+            # the run stopped before the script could answer (checkout, install)
+            gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "The run failed before the operation could be carried out, so nothing was changed in the archive: see the run at $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Close and reopen this issue to try again."
           fi
-          if [ "${{ steps.op.outputs.status }}" = "0" ] && [ "${{ job.status }}" = "success" ]; then
+          if [ "$STATUS" = "0" ] && [ "$JOB_STATUS" = "success" ]; then
             # the issue's title becomes the record of what was done
             [ -s "$RUNNER_TEMP/title.txt" ] && gh issue edit "$ISSUE" -R "$GITHUB_REPOSITORY" --title "$(cat "$RUNNER_TEMP/title.txt")" >/dev/null || true
             gh issue close "$ISSUE" -R "$GITHUB_REPOSITORY"
