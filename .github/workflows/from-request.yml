@@ -66,9 +66,14 @@ jobs:
           from pathlib import Path
           tmp = Path(os.environ["RUNNER_TEMP"])
           read = lambda n: (tmp / n).read_text(encoding="utf-8").strip() if (tmp / n).exists() else ""
+          ok = os.environ["STATUS"] == "0"
+          run = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          # an answer even when the script stopped before writing one
+          message = read("result.md") or ("" if ok else
+              f"The request failed, and nothing was changed in the archive: see the run at {run}.")
           Path(f"requests/results/{os.environ['ID']}.json").write_text(json.dumps({
-              "id": os.environ["ID"], "ok": os.environ["STATUS"] == "0",
-              "message": read("result.md"), "title": read("title.txt"),
+              "id": os.environ["ID"], "ok": ok,
+              "message": message, "title": read("title.txt"),
               "date": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
           }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
           # the last 100 answers, by name, which begins with the date and time

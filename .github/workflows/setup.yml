@@ -110,7 +110,10 @@ jobs:
           if [ -n "$BASE_URL" ]; then
             echo "BASE_RULE=as given in the form" >> "$GITHUB_ENV"
           else
-            python3 .github/scripts/osheaf_issue.py --base-url | tee -a "$GITHUB_ENV"
+            # checked by the script: no spaces or control characters, which
+            # could add other variables to the environment
+            python3 .github/scripts/osheaf_issue.py --base-url > "$RUNNER_TEMP/base.env"
+            tee -a "$GITHUB_ENV" < "$RUNNER_TEMP/base.env"
           fi
       - name: osheaf init, with the owner of the key ceremony
         run: |
@@ -141,7 +144,17 @@ jobs:
             cat "$RUNNER_TEMP/result.md" | tee -a "$GITHUB_STEP_SUMMARY"
             [ $status -eq 0 ] || exit 1
           fi
-          python3 -c 'import json; s = json.load(open("osheaf.json")); print("BASE_URL=" + s["baseUrl"]); print("OWNER=" + s["owner"]); print("COLLECTION=" + s.get("index", {}).get("html", {}).get("featured", ""))' >> "$GITHUB_ENV"
+          # into the environment of the next steps: one line each, or none
+          python3 - >> "$GITHUB_ENV" <<'PY'
+          import json, sys
+          s = json.load(open("osheaf.json"))
+          values = {"BASE_URL": s["baseUrl"], "OWNER": s["owner"],
+                    "COLLECTION": s.get("index", {}).get("html", {}).get("featured", "")}
+          for k, v in values.items():
+              if not isinstance(v, str) or not v.isprintable():
+                  sys.exit(f"osheaf.json: {k} {v!r} is not one line of text")
+          print("\n".join(f"{k}={v}" for k, v in values.items()))
+          PY
       - name: Commit
         if: env.SET_UP_ALREADY != '1'
         run: |

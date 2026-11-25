@@ -114,6 +114,18 @@ request deposit "This deposit=A new version of a paper in the archive" Label=ran
   "Main source=paper.tex" "What changed (for a new version)=A remark on Stirling's formula." \
   "In collection=a-reading-list-on-random-walks"
 
+step "sources in a zip, one of whose files has '=' in its name"
+Z=$WORK/zipped
+mkdir -p "$Z/src/figures"
+cp "$P/v1/paper.tex" "$P/v1/refs.bib" "$Z/src/"
+cp "$EX/papers/random-walks/figure.tex" "$Z/src/figures/fig=1.tex"
+(cd "$Z/src" && python3 -c 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1], "w"); [z.write(f) for f in sys.argv[2:]]' \
+  "$Z/sources.zip" paper.tex refs.bib "figures/fig=1.tex")
+request deposit "This deposit=A new paper" Label=zipped "Title=Zipped sources" "Authors=Example, Ada" \
+  "Licence=CC BY 4.0 (cc-by-4.0)" "@PDF of this version=$P/v1/paper.pdf" "@Sources=$Z/sources.zip" \
+  "Main source=paper.tex"
+grep -rqF 'figures/fig=1.tex' --include=inventory.json ocfl || { echo "figures/fig=1.tex should be deposited"; exit 1; }
+
 step "a notice, a new licence, a withdrawal"
 request notice Label=random-walks "Document version it is about=1" "Text of the notice=An invented erratum."
 request deposit "This deposit=A new paper" Label=old-notes "Title=Old notes" "Authors=Example, Ada" \

@@ -597,19 +597,36 @@ def download(form, name, folder):
     return files
 
 
+# limits of an unpacked zip of sources, as osheaf's own for arXiv's tar
+# archives (opensheaf-py, arxiv.py; section 15 of the specification)
+MAX_UNPACKED = 1 << 30      # bytes, after decompression
+MAX_MEMBERS = 10000         # files of the zip
+
+
 def unpack(archive, folder):
-    """Extract a zip safely: no absolute paths, no '..', no system files."""
+    """Extract a zip safely: no absolute paths, no '..', no system files, and
+    no more than MAX_MEMBERS files and MAX_UNPACKED bytes, counted as they
+    are written (the sizes a zip declares are not trusted)."""
     names = []
+    total = 0
     with zipfile.ZipFile(archive) as z:
-        for info in z.infolist():
+        infos = [i for i in z.infolist() if not i.is_dir()]
+        if len(infos) > MAX_MEMBERS:
+            raise Problem(f"The zip of the sources holds more than {MAX_MEMBERS} files.")
+        for info in infos:
             parts = Path(info.filename).parts
-            if info.is_dir() or not parts or info.filename.startswith("/") or ".." in parts \
+            if not parts or info.filename.startswith("/") or ".." in parts \
                     or parts[0] == "__MACOSX" or parts[-1] == ".DS_Store":
                 continue
             target = folder / Path(*parts)
             target.parent.mkdir(parents=True, exist_ok=True)
             with z.open(info) as src, open(target, "wb") as dst:
-                dst.write(src.read())
+                while chunk := src.read(1 << 20):
+                    total += len(chunk)
+                    if total > MAX_UNPACKED:
+                        raise Problem(f"The zip of the sources expands to more than "
+                                      f"{MAX_UNPACKED >> 20} MiB.")
+                    dst.write(chunk)
             names.append(Path(*parts).as_posix())
     tops = {n.split("/", 1)[0] for n in names}
     if len(tops) == 1 and all("/" in n for n in names):
@@ -702,8 +719,14 @@ def deposit(form, origin):
                 raise Problem(f"The licence file `{licence_file}` is not among the sources: give its path "
                               "inside the zip (for instance `LICENSE`).")
             args += ["--licence-file", licence_file]
-        for path, logical in others:
-            args += ["--extra-source", f"{path}={logical}"]
+        # osheaf splits FILE=LOGICAL at the first '=': each extra source is
+        # given from a copy whose path has none, its logical path kept whole
+        staged = work / "extra"
+        staged.mkdir()
+        for n, (path, logical) in enumerate(others):
+            copy = staged / str(n)
+            shutil.copyfile(path, copy)
+            args += ["--extra-source", f"{copy}={logical}"]
         title, authors = field(form, "Title"), lines(field(form, "Authors"))
         if not new and (not title or not authors):
             # a new version: what is left empty stays as in the current version
@@ -1028,9 +1051,13 @@ def redirected_host(url):
 
 
 def site_url(url):
-    """An address of a site as a base URL: https, ending with /."""
+    """An address of a site as a base URL: https, ending with /, and no
+    spaces or control characters (it goes into the workflow's environment)."""
     url = re.sub(r"^http://", "https://", url.strip())
-    return url if url.endswith("/") else url + "/"
+    url = url if url.endswith("/") else url + "/"
+    if not re.fullmatch(r"https://[^\s/?#]+(/[^\s?#]*)?/", url) or not url.isprintable():
+        raise Problem(f"`{url.strip()}` is not the address of a site (https://..., with no spaces).")
+    return url
 
 
 def default_base_url(repo):
@@ -1151,6 +1178,8 @@ def main():
     if len(sys.argv) == 2 and sys.argv[1] == "--base-url":
         # for the workflow "Set up the archive": the base URL and its rule
         base, rule = default_base_url(os.environ.get("GITHUB_REPOSITORY", "owner/archive"))
+        if not rule.isprintable():
+            raise Problem(f"The rule of the base URL has a control character: {rule!r}.")
         print(f"BASE_URL={base}\nBASE_RULE={rule}")
         return 0
     if len(sys.argv) == 3 and sys.argv[1] == "--request":
@@ -1193,6 +1222,9 @@ def main():
                if origin.startswith("issue") else "Correct it and send the request again.\n"),
             encoding="utf-8")
         return 1
+    except Exception:
+        restore(saved)   # and the answer points to the run (unexpected)
+        raise
     result_file.write_text(
         f"Done: {done}.\n\nThe archive's site, <{own_base()}>, shows it once GitHub Pages has "
         "published it (usually within a few minutes).\n", encoding="utf-8")
@@ -1203,5 +1235,29 @@ def main():
     return 0
 
 
+def run_link():
+    """The page of the workflow's run, in GitHub's workflows."""
+    if all(os.environ.get(v) for v in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")):
+        return (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+                f"/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+    return None
+
+
+def unexpected(error):
+    """An answer for an error that is not the author's to fix (a malformed
+    request, a fault of the script or of the runner): the issue or the
+    page still gets one, pointing to the run."""
+    where = run_link()
+    what = " ".join(f"{type(error).__name__}: {error}".split())[:300].replace("`", "'")
+    Path(os.environ.get("RESULT_FILE", "result.md")).write_text(
+        f"Nothing was changed in the archive: the run stopped on an unexpected error (`{what}`).\n\n"
+        + (f"See the run at {where}; " if where else "")
+        + "try again later, or tell the archive's owner.\n", encoding="utf-8")
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as error:
+        unexpected(error)
+        raise
