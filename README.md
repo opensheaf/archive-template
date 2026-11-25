@@ -454,6 +454,24 @@ your own, add it (for Apache, `Header set Access-Control-Allow-Origin "*"`;
 for nginx, `add_header Access-Control-Allow-Origin *;`). Files must be
 served byte for byte (no conversion of line endings).
 
+The files of papers are served from the site's own address, next to its
+pages. The archive does not vouch for them (section 15.3 of the
+specification): a source file in HTML or SVG may hold a script, and a
+reader who opens it runs that script as if it were a page of the site.
+A host that sets response headers can stop this, by serving the storage root
+`ocfl/` with `Content-Security-Policy: sandbox` (for Netlify or Cloudflare
+Pages, a file `_headers` with the line `/ocfl/*` followed by
+`  Content-Security-Policy: sandbox`; for Apache, `Header set
+Content-Security-Policy "sandbox"` in its `<Directory>`; for nginx,
+`add_header Content-Security-Policy sandbox;` in its `location`). GitHub
+Pages sets no headers, so there the site must keep nothing such a script
+could take or misuse: the pages of this template keep no cookies, logins or
+stored data, and yours should not add any (comment widgets, sign-ins,
+analytics cookies). A script can still show a forged page at the site's
+address; it cannot change the archive, whose files and signatures readers
+check, nor reach the Manager or the Explorer, which run on sites of their
+own.
+
 ## 6. Make it yours
 
 - The look: edit `templates/index.html`, `templates/paper.html`,
