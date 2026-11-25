@@ -207,10 +207,10 @@ copies its key log from another archive (`owner:` and `key-log:` in
    page lists the versions you have not vetted.
 
 Only the owner of the repository and its collaborators can change the
-archive this way; issues opened by others are answered and closed. What is
-attached to an issue is public at once. If something is wrong, the workflow
-says so in the issue and changes nothing: edit the issue, then close and
-reopen it to try again. Each issue stays as the record of what was done.
+archive this way; issues opened or reopened by others are answered and
+closed. What is attached to an issue is public at once. If something is
+wrong, the workflow says so in the issue and changes nothing: edit the
+issue, then close and reopen it to try again. Each issue stays as the record of what was done.
 Without the secret `OPENSHEAF_SIGNING_KEY`, nothing can be signed: the
 workflows say so, and change nothing.
 
@@ -227,6 +227,11 @@ does the issue forms, and writes its answer to `requests/results/ID.json`
 (the last 100 answers are kept; older ones stay in the history); or,
 with the owner's key unlocked by your passkey, it carries the operation out
 in the page and commits it, signed there, as the workflow would.
+
+A request is carried out whoever wrote it, once it is on the branch `main`:
+merging a pull request that adds files under `requests/` is an operation
+you authorise, signed with the owner's key. Look at what a pull request
+adds there before merging it.
 
 For a repository not set up yet, the manager makes the owner in the page,
 as `osheaf init --new-owner --key DID` makes it: your current key (kept in
