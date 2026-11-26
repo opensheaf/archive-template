@@ -29,7 +29,7 @@ import re
 import subprocess
 import sys
 
-ARCHIVE = re.compile(r"^(opensheaf\.json|indexes\.json|(ocfl|names|owners|sha512)/.+)$")
+ARCHIVE = re.compile(r"^(opensheaf\.json|indexes\.json|(ocfl|objects|names|owners|sha512)/.+)$")
 UNSET = ("text", "filter", "ident", "working-tree-encoding", "export-subst", "merge")
 LFS = b"version https://git-lfs.github.com/spec/v1"
 OBJECT_MARK = "0=ocfl_object_1.1"

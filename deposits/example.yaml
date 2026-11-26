@@ -4,7 +4,7 @@
 # deposits several papers, or several versions, in order. Copy and edit.
 # Keep your working files outside the repository, or in work/ (ignored by
 # git): the deposit copies them into the archive.
-id: kpz-uniqueness                 # the label, permanent, in the URL: short, lower case, words joined by -
+id: kpz-uniqueness                 # the label, in the readable URL (osheaf label changes it): short, lower case, words joined by -
 new: yes                           # a new paper (its first deposit); remove for a new version
 source: ../work/kpz/paper.tex      # the main source (any format)
 pdf: ../work/kpz/paper.pdf         # the PDF of this version

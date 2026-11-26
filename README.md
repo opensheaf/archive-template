@@ -21,11 +21,12 @@ metadata), and
 and is kept with [opensheaf-py](https://github.com/opensheaf/opensheaf-py)
 (the `osheaf` command).
 
-What the specification calls a *line* is a paper with all its versions. In
-the archive it has a *label*, chosen by you (`kpz-uniqueness`), which is the
-address of its page, `paper/kpz-uniqueness/`; everywhere, it is named by its
-*sheaf URI*, `sheaf:<name>:<owner>`, made once when the paper is first
-deposited, and shown on its page. Every version is signed by the archive's
+What the specification calls a *line* is a paper with all its versions. In the
+archive it has a *label*, chosen by you (`kpz-uniqueness`), which gives the
+readable address of its page, `paper/kpz-uniqueness/`, and may be changed
+later; everywhere, it is named by its *sheaf URI*, `sheaf:<name>:<owner>`,
+made once when the paper is first deposited, and shown on its page, whose
+permanent address is `paper/<name>/`. Every version is signed by the archive's
 *owner*, a keyed identity (yours), whose *key log* is kept in the archive:
 anyone can check that the versions are yours, wherever they find a copy.
 
@@ -180,7 +181,7 @@ copies its key log from another archive (`owner:` and `key-log:` in
    for the labels of the issue forms and Pages: the workflow then checks the
    secret and does the rest.)
 4. To deposit a paper: **Issues**, **New issue**, **New deposit**. Choose
-   **A new paper**, give it a label (permanent, the address of its page), fill
+   **A new paper**, give it a label (the readable address of its page), fill
    in the form and drag in the PDF and the sources (best as one zip: GitHub
    does not accept every kind of file, such as `.tex`, as an attachment),
    then submit. The workflow `from issue` deposits the paper, signs it,
@@ -315,12 +316,14 @@ osheaf deposit kpz-uniqueness paper.tex --pdf paper.pdf --new \
   --related "IsIdenticalTo:arxiv:1508.07764"
 ```
 
-- The label (`kpz-uniqueness`) is permanent and appears in the address of
-  the paper's page: short (at most 32 characters), lower case, words joined
-  by `-`. A new paper is deposited with `--new` (`new: yes` in the YAML
-  file), which makes its sheaf URI, printed by the deposit; without `--new`,
-  an unknown label is refused, so that a mistyped label never makes a new
-  paper.
+- The label (`kpz-uniqueness`) appears in the readable address of the paper's
+  page: short (at most 32 characters), lower case, words joined by `-`. It can
+  be changed later (`osheaf label OLD NEW`), the old address then sending
+  readers on; the permanent name of the paper is its sheaf URI, and its page
+  also has the permanent address `paper/<name>/`. A new paper is deposited
+  with `--new` (`new: yes` in the YAML file), which makes its sheaf URI,
+  printed by the deposit; without `--new`, an unknown label is refused, so
+  that a mistyped label never makes a new paper.
 - Sources are any files (LaTeX, Markdown, ...); `--extra-source FILE=PATH`
   puts a file at the path the main source refers to. The PDF is yours: the
   archive keeps exactly the files you give. A paper whose sources are lost can
